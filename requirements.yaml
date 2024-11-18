@@ -1,0 +1,24 @@
+name: Bart-opt
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.11
+  - ipywidgets=8.1.5
+  - matplotlib=3.9.2
+  - nltk=3.9.1
+  - numpy=2.1.3
+  - pandas=2.2.3
+  - seaborn=0.13.2
+  - tqdm=4.66.5
+  - pytorch=2.3.0
+  - pip
+  - pip:
+      - rouge_score
+      - accelerate==0.34.2
+      - transformers[torch]==4.44.1
+  - datasets==2.19.1
+  - evaluate==0.4.0
+  - jupyter==1.1.1
+  - brotli==1.1.0
+  - absl-py==2.1.0
