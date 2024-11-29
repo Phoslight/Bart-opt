@@ -23,7 +23,7 @@ from torch.nn import Parameter
 import torch.nn.functional as F
 from torch.autograd import Function
 from datasets import Dataset, load_dataset
-from transformers import GPT2TokenizerFast, GPT2Config, GPT2LMHeadModel, pipeline
+from transformers import GPT2TokenizerFast, GPT2Tokenizer, GPT2Config, GPT2LMHeadModel, pipeline
 from transformers import Trainer, TrainingArguments, TrainerCallback
 from transformers import AdamW, get_linear_schedule_with_warmup
 from transformers import TrainingArguments, Trainer, DataCollatorWithPadding

@@ -2,55 +2,7 @@ from precompiled import *
 
 tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
 
-if tokenizer.pad_token is None:
-    existing_special_tokens = list(tokenizer.special_tokens_map_extended.values())
-    tokenizer.add_special_tokens({"pad_token": existing_special_tokens[0]})
-
-dataset = load_dataset("openwebtext", streaming=True, trust_remote_code=True)
 text_column = "text"
-
-size = 3000
-samples = list(islice(dataset['train'], size))   # much faster than using self-written iterations...
-raw_datasets = Dataset.from_dict({text_column: [sample[text_column] for sample in samples]})
-
-tmp = raw_datasets.train_test_split(test_size=0.2)  # very small. since it often runs OOM...
-train_dataset = tmp['train']
-val_dataset, test_dataset = tmp['test'].train_test_split(test_size=0.15).values()
-
-def preprocess_function(data):
-    inputs = tokenizer(data[text_column], max_length=None, truncation=True, padding=True)
-    inputs['labels'] = inputs['input_ids'].copy()
-    return inputs
-
-train_dataset = train_dataset.map(
-    preprocess_function,
-    batched=True,
-    num_proc=1,
-    remove_columns=train_dataset.column_names,
-    load_from_cache_file=True,
-    desc="Running tokenizer on dataset",
-)
-
-val_dataset = val_dataset.map(
-    preprocess_function,
-    batched=True,
-    num_proc=1,
-    remove_columns=val_dataset.column_names,
-    load_from_cache_file=True,
-    desc="Running tokenizer on dataset",
-)
-
-original_test_dataset = test_dataset
-
-test_dataset = test_dataset.map(
-    preprocess_function,
-    batched=True,
-    num_proc=1,
-    remove_columns=test_dataset.column_names,
-    load_from_cache_file=True,
-    desc="Running tokenizer on dataset",
-)
-
 
 def compute_metrics(eval_preds):
     preds, labels = eval_preds   # GPT2: (bs, seq_length, vocab_size)
@@ -96,8 +48,8 @@ def print_rouge_score_2(model: nn.Module, test_dataset: Dataset):
     trainer = Trainer(
         model=model,
         args=training_args,
-        train_dataset=train_dataset.select(range(1)),
-        eval_dataset=val_dataset.select(range(1)),
+        train_dataset=test_dataset.select(range(1)),  # dummy
+        eval_dataset=test_dataset.select(range(1)),   # dummy
         compute_metrics=compute_metrics,
     )
 

@@ -2,9 +2,9 @@ from data import *
 
 class PTrainConfig:
     def __init__(self):
-        self.batch_size = 16  # 4
+        self.batch_size = 32  # 4
         self.gradient_accumulation_steps = 4
-        self.epochs = 30 * self.gradient_accumulation_steps
+        self.epochs = 1
         self.total_steps = len(train_dataset) // self.batch_size // self.gradient_accumulation_steps * self.epochs
 
 # Note: This will NOT be serialized by checkpoints.

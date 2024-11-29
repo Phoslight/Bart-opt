@@ -2,9 +2,9 @@ from precompiled import *
 
 class QTrainConfig:
     def __init__(self):
-        self.batch_size = 16  # 4
+        self.batch_size = 32  # 4
         self.gradient_accumulation_steps = 4
-        self.epochs = 5 * self.gradient_accumulation_steps
+        self.epochs = 1
 
 q_train_config = QTrainConfig()
 
