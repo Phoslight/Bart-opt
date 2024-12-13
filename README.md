@@ -1,6 +1,6 @@
-# Bart model optimization experiments
+# Lightweight Transformers for Text Generation
 
-Distillations, movement pruning, and quantization (PTQ and QAT) on text summarization using pre-trained bart model.
+Distillations, movement pruning, and quantization (PTQ and QAT) on text summarization and prediction using pre-trained BART / GPT-2 model.
 
 ## Environment
 
