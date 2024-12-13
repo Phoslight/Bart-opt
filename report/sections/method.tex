@@ -32,7 +32,7 @@ BART-large-CNN~\cite{lewis2019bart} was pre-trained and fine-tuned on the CNN Da
 It has 12 Transformer encoder layers and 12 Transformer decoder layers, the model being in total of 1.51GB\@.
 GPT-2~\cite{radford2019language} was a pre-trained autoregressive decoder model using a causal language masking objective,
 containing 12 Transformer decoder layers with a total size of 0.548 GB. We extracted the layers 0, 2, 5, 7, 9, 11
-from the encoder / decoder to form the student's encoder / decoder, thereby halving the model's storage.
+from the encoder/decoder to form the student's encoder/decoder, thereby halving the model's storage.
 Weight state dicts of these layers are also loaded to avoid pre-training from scratch.
 
 In our implementation, we chose to use \texttt{MSE} to match the logits output at each hidden layer
@@ -72,10 +72,23 @@ Pruning is a model optimization technique aimed at reducing the size and computa
 
 We assign a uniformly drawn score to each neuron in an FFN layer and to each head in an attention layer. Each time during forward passes, we use a threshold \texttt{K} to select the top \texttt{K} smallest scores and drop the corresponding neurons and attention heads by transforming the scores into masks. Regarding neurons and attention heads as pruning granularity, we should notice that once we have determined which attention head is useless, we should remove that same head from all \texttt{QKV} projections and the final output projection in the current attention. Also for FFN layers that contain two linear layers \texttt{fc1} and \texttt{fc2}, once we have decided which neuron can be pruned in \texttt{fc1}, we must remove the corresponding neuron defined in \texttt{fc2}.  Therefore, we call our trained scores ``shared score'' or ``shared mask'', since they are shared among \texttt{QKV} attention projections, and among FFN layers.
 
-During the training process in order to find the best shared masks in the Transformer, we will apply the current shared masks in forward and backward passes to train learnable shared masks. However, the masking operation is not differentiable since it zeros out all corresponding attention heads and set them to zero as inactive heads during forward passes. To solve this, we applied STE, which stands for straight-through estimator techniques to estimate gradients during backward passes so that the scores can be updated properly. Therefore, the most important neuron or attention heads must have the highest score theoretically due to natural selection. Additionally, we implemented a dynamic threshold scheduler for the movement pruning trainer. For instance, in our setup, we aim to prune 30\% of the attention heads in the Transformer and 60\% of the neurons in FFN layers. To minimize abrupt performance degradation, the scheduler gradually increases the total masking threshold from 0\% to 30\% following a cubic curve for masked attention heads. The thresholds will reach their peek at 85\% of the training progress and stay at the peek until the end and use the remaining 15\% of the progress for fine-tuning, as shown in Figure~\ref{fig:sub3}.
+During the training process in order to find the best shared masks in the Transformer,
+we will apply the current shared masks in forward and backward passes to train learnable shared masks.
+However, the masking operation is not differentiable since it zeros out all corresponding attention heads
+and set them to zero as inactive heads during forward passes.
+To solve this, we applied STE, which stands for straight-through estimator techniques to estimate gradients
+during backward passes so that the scores can be updated properly.
+Therefore, the most important neuron or attention heads must have the highest score theoretically due to natural selection.
+Additionally, we implemented a dynamic threshold scheduler for threshold $T$ for the movement pruning trainer, as shown in Eq.~\ref{eq:threshold}.
+For instance, in our setup, we aim to prune 30\% of the attention heads in the Transformer and 60\% of the neurons in FFN layers.
+To minimize abrupt performance degradation, the scheduler gradually increases the total masking threshold from 0\% to 30\%
+following a cubic curve for masked attention heads.
+The thresholds will reach their peek at 85\% of the training progress and stay at the peek
+until the end and use the remaining 15\% of the progress for fine-tuning, as shown in Figure~\ref{fig:sub3}.
 
 \begin{equation}
-    \text{threshold} = \text{threshold}_{\text{final}} - \left( \text{threshold}_{\text{final}} - \text{threshold}_{\text{init}} \right) \cdot (1 - progress)^3
+T = T_{\text{init}} + (T_{\text{final}} - T_{\text{init}}) \times (1 - \text{progress})^3
+\label{eq:threshold}
 \end{equation}
 
 
@@ -109,12 +122,16 @@ while in Figure~\ref{fig:attention_head_pruning}, darker colors highlight pruned
 Quantization can reduce the precision of numbers used to present parameters or activations. By converting high-precision floating-point numbers (FP32, FP64) to lower precision (INT8, FP16), quantization reduces the memory footprint and computational requirements of a model, making it more efficient for deployment on resource-constrained devices like edge or mobile devices. Types of quantization include PTQ, standing for post-training quantization, and QAT, short for quantization-aware training. To map FP32, for instance, to INT8, we can convert floating point values into quantized space using linear mapping strategy, as expressed below:
 
 
-\begin{align}
+\begin{gather}
+\begin{split}
     r &= S(q-Z) \\
     q &= \operatorname{round}\left(\frac{r}{S} + Z\right)
-\end{align}
+\end{split}
+\end{gather}
 
-, where $r$ and $q$ are the number before and after quantization; $S$ and $Z$ are scale and zero-point. The linear mapping is referred to as symmetric or asymmetric mapping, depending on whether $Z$ is zero, as shown in Figure~\ref{fig:sub4}, where a symmetric range is converted to a symmetric INT8 range on the left and an asymmetric range is mapped to an asymmetric INT8 range.
+where $r$ and $q$ are the number before and after quantization; $S$ and $Z$ are scale and zero-point.
+The linear mapping is referred to as symmetric or asymmetric mapping, depending on whether $Z$ is zero,
+as shown in Figure~\ref{fig:sub4}, where a symmetric range is converted to a symmetric INT8 range on the left and an asymmetric range is mapped to an asymmetric INT8 range.
 
 \begin{figure}[hbpt]
     \centering

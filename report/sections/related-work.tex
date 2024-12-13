@@ -37,7 +37,7 @@ and inference cost while retaining high precision.
 For instance, Q8BERT~\cite{zafrir2019q8bert} introduced a quantized 8-bit BERT model,
 reducing the model size by approximately 4x by applying quantization-aware training.
 Furthermore, TernaryBERT~\cite{zhang2020ternarybert} uses a ternary quantization mechanism,
-and the weights of the model only take values in \texttt{\{-1, 0, 1\}},
+and the weights of the model only take values in $\left\{ -1,0,1 \right\}$,
 further achieving a higher compression rate while retaining the performance.
 Real-world implementations of quantization include TorchQuantization,
 which provides implementations of post-training quantization and quantization-aware training.
