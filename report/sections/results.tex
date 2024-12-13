@@ -1,3 +1,27 @@
+\subsection{Experiment Setup}
+We conducted experiments using the OpenWebText dataset~\cite{gokaslan2019openwebtext}, an open-source replication of OpenAI's WebText,
+for autoregressive text prediction tasks and training the LSTM model for character-level text completion.
+The BBC news dataset, containing original posts and their corresponding summaries,
+was used for text summarization tasks with Transformer-based models.
+
+For the Transformer-based models, we utilized HuggingFace's \textit{transformers}~\cite{wolf2020transformers} library,
+which provided pre-trained definitions for BART and GPT-2.
+The library's \texttt{Trainer} and \texttt{Seq2SeqTrainer} APIs were used for fine-tuning, streamlining the training process.
+Experiments were run on an A100 GPU with 40GB of memory using Google Colab.
+Due to computational constraints, only a small subset of the original datasets was used,
+requiring approximately 5 hours of runtime.
+The pre-trained models were fine-tuned on task-specific data to facilitate performance comparisons post-optimization.
+
+For the LSTM model, a subset of OpenWebText dataset (10K samples) was preprocessed into overlapping character-level sequences.
+Texts were split into chunks of up to 100 characters, with a one-third overlap between consecutive chunks to preserve context.
+The vocabulary included lowercase and uppercase English letters, punctuation symbols (e.g., \texttt{.}, \texttt{,}, \texttt{!}, \texttt{?}),
+and spaces, with unknown or non-standard characters handled as special tokens.
+
+We trained the LSTM model with a batch size of 1024.
+Each sequence was split into inputs (characters up to the second-last in the chunk) and targets (characters from the second character onward).
+This setup allowed the LSTM to learn character-level dependencies effectively and generate predictions for incomplete text inputs.
+On an Nvidia 4090 GPU, it took about 2.5 hours to train the model.
+
 \subsection{Knowledge Distillation}
 We have evaluated the performance, inference time, and the reduction of storage for our distiller with the settings discussed above. As the table~\ref{tab:BART_comparison} shows below, the distiller for BART-large-CNN on text summarization had a good result: not only did our student have nearly the same rouge scores as the teachers', but it also had 26.7\% inference time reduction and 43\% model size reduction. The rouge scores range from 0 to 1, with higher values indicating better quality. Please note that the model size reduction is less than 50\% but that is normal since Transformer models have a shared embedding layer above the encoder to transform text ids to text embeddings,  % (bs, seq_len) -> (bs, seq_len, n_dim)
 and another linear language modeling head layer below the decoder to map hidden states to vocabulary logits. % (bs, seq_len, n_dim) -> (bs, seq_len, vocab_sz)
@@ -138,3 +162,39 @@ For the GPT-2 pipeline, the results are as the below table~\ref{tab:GPT2_pipelin
     \caption{Pipeline of GPT-2}
     \label{tab:GPT2_pipeline}
 \end{table*}
+
+\subsection{Task-Specific Evaluation}\label{subsec:task-specific-evaluation}
+\begin{table}[!htbp]
+    \centering
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Test Type}       & \textbf{LSTM Accuracy (\%)} & \textbf{GPT-2 Accuracy (\%)} \\ \midrule
+        Incomplete Word Test     & 62.24                      & 5.51                         \\
+        Complete Word Test       & 8.71                       & 14.87                        \\ \bottomrule
+    \end{tabular}
+    \caption{Accuracy results for task-specific evaluations of LSTM and GPT-2 models.}
+    \label{tab:task_specific_results}
+\end{table}
+
+To provide a practical perspective on model performance, we conducted evaluations specifically designed for real-world tasks
+in a typing assistance context.
+While perplexity is commonly used to measure model quality, it does not directly assess usability, particularly for incomplete inputs.
+To address this, we devised two tests:
+
+The \textbf{Incomplete Word Test} involved truncating the last word of an approximately 60-character sentence to a partially typed state,
+requiring the models to predict the correct completion.
+The \textbf{Complete Word Test} removed the last full word from the same sentence, tasking the models to predict the missing word.
+Each test used 1,000 samples derived from the OpenWebText-100k dataset.
+
+The results, as shown in Table~\ref{tab:task_specific_results}, demonstrate distinct strengths for each model.
+For incomplete word predictions, the LSTM achieved 62.24\% accuracy, far surpassing GPT-2's 5.51\%.
+This aligns with the LSTM's design, which focuses on character-level dependencies and is particularly effective for partially typed inputs.
+GPT-2's poor performance in this test highlights its reliance on token-based predictions, which are less suited for incomplete inputs.
+
+Conversely, in the complete word test, GPT-2 outperformed the LSTM with 14.87\% accuracy compared to 8.71\%.
+This reflects GPT-2's ability to leverage its contextual understanding and token-based architecture for generating complete words in structured inputs.
+However, the relatively low accuracy for both models in this test indicates room for improvement in handling broader word prediction tasks.
+
+These results justify the hybrid design, leveraging the LSTM's strengths for incomplete inputs and GPT-2's contextual capabilities for complete inputs.
+By evaluating models in a task-specific manner, we bridge the gap between standard metrics like perplexity and real-world usability,
+ensuring the system performs effectively in practical scenarios.

@@ -1,17 +1,28 @@
-\subsection{Experiment Setup}
-We used a subset of OpenWebText dataset~\cite{gokaslan2019openwebtext}, an open-source replication of OpenAI's WebText,
-for autoregressive text prediction and a BBC news dataset containing original posts and their corresponding summarizations for text summarization.
-We utilized HuggingFace's \textit{transformers}~\cite{wolf2020transformers} library,
-which provides the pre-trained definitions for BART and GPT-2 models, as well as the \texttt{Trainer} and \texttt{Seq2SeqTrainer} APIs,
-to fine-tune these models during training.
-The latter allowed us to focus more on optimizing the models rather than implementing training routines (trainer, checkpointing, etc.) from scratch.
-The model optimization pipelines were trained and evaluated on an A100 GPU with 40GB memory on Google Colab
-and required approximately 5 hours of runtime since only a small subset of the original dataset was used.
-Before applying the optimizations, we first fine-tuned the pre-trained models on the prepared datasets to warm them up,
-also for later performance comparison.
+\subsection{Hybrid Model Design for Text Prediction}\label{subsec:mt:hybrid-model-design}
+To address the limitations of token-based models like GPT-2 in handling incomplete inputs and achieving real-time performance,
+we implemented a hybrid system that combines a lightweight, character-level LSTM model with GPT-2.
+This hybrid design leverages the strengths of both models, enabling efficient and accurate predictions for typing assistance tasks.
+
+The LSTM model focuses on character-level predictions, which are particularly effective for completing partial words.
+It takes an input sequence of characters, processes them through recurrent layers, and predicts the most likely next character at each timestep.
+For example, given an input like ``ligh'', the LSTM predicts the following characters
+(`t', `w', `e', `i', `g', `h', `t') iteratively until a space character or punctuation is encountered.
+
+The prediction process involves:
+
+\begin{enumerate}
+\item Converting each character into an index in the vocabulary (English alphabet, numbers, and special characters), and embedding the indices into a dense representation.
+\item Processing the embedded sequence through LSTM layers that retain context over the input.
+\item Generating a probability distribution over the vocabulary for the next character at each timestep, selecting the character with the highest probability.
+\end{enumerate}
+This iterative mechanism allows the LSTM to generate highly accurate character-level completions, even for incomplete inputs.
+
+In the hybrid system, inputs are first processed by the LSTM. If the LSTM produces a non-empty result (non-space or punctuation character), it is returned directly to the user.
+Otherwise, the input is passed to GPT-2, which provides context-aware phrase completions or generates predictions for longer, more complex inputs.
+By delegating simpler tasks to the LSTM, the system achieves lower latency and reduces computational load on GPT-2.
 
 \subsection{Knowledge Distillation}
-Knowledge Distillation was proposed in 2015 as a technique for transferring knowledge from a large, complex model (teacher model) to a smaller,
+Knowledge Distillation is a technique for transferring knowledge from a large, complex model (teacher model) to a smaller,
 more efficient model (student model).
 The key idea is that the student model can achieve comparable performance to the teacher model by learning soft labels of the teacher:
 probability distributions instead of learning the true labels only.
@@ -62,15 +73,38 @@ and $T$ to 2, since we aim to maximize the hidden state learning by the student 
     \label{fig:sub2}
 \end{figure}
 
-As shown in Figure~\ref{fig:sub1}, this image illustrates an example encoder-decoder Transformer (e.g.\ BART) teacher model with 3 layers for each on the left. On the right a distilled student model extracts the first and last layers of the teacher's encoder and decoder (using the same colors) and forms a new encoder and decoder. Arrows in this figure show the data flow: \texttt{input embeds} are the text embedding input, which will become \texttt{Q,K,V} in encoders. Encoder's last hidden layer states will be transformed to \texttt{K,V} used in cross-attention of decoder layers, and the \texttt{labels} are fed as \texttt{Q,K,V} in self-attention but as \texttt{Q} only in cross-attention of decoder layers.
+As shown in Figure~\ref{fig:sub1}, this image illustrates an example encoder-decoder Transformer (e.g.\ BART) teacher model with 3 layers for each on the left.
+On the right a distilled student model extracts the first and last layers of the teacher's encoder and decoder (using the same colors) and forms a new encoder and decoder.
+Arrows in this figure show the data flow: \texttt{input embeds} are the text embedding input, which will become \texttt{Q,K,V} in encoders.
+Encoder's last hidden layer states will be transformed to \texttt{K,V} used in cross-attention of decoder layers, and the \texttt{labels} are fed as \texttt{Q,K,V}
+in self-attention but as \texttt{Q} only in cross-attention of decoder layers.
 
-Figure~\ref{fig:sub2} presents an example 3-layer decoder-only Transformer (e.g.\ GPT-2) teacher model on the left, which is much simpler than the previous one since decoder-only models can choose not to use cross-attention, meaning it only leverages self-attention. On the right a distilled student model extracts the first and last layers of the teacher's decoder (using same colors) and forms a new decoder. \texttt{input embeds} will become \texttt{Q,K,V} in decoders. Finally the final logits generated by the decoder will be compared with the original text embeddings using cross entropy to calculate the loss because of autoregression.
+Figure~\ref{fig:sub2} presents an example 3-layer decoder-only Transformer (e.g.\ GPT-2) teacher model on the left,
+which is much simpler than the previous one since decoder-only models can choose not to use cross-attention, meaning it only leverages self-attention.
+On the right a distilled student model extracts the first and last layers of the teacher's decoder (using same colors) and forms a new decoder.
+\texttt{input embeds} will become \texttt{Q,K,V} in decoders.
+Finally the final logits generated by the decoder will be compared with the original text embeddings using cross entropy to calculate the loss because of autoregression.
 
 
-\subsection{Movement Pruning}
-Pruning is a model optimization technique aimed at reducing the size and computational complexity of deep learning models by removing less important parameters or structures. There are several different classification approaches for pruning, including by granularity (weight, neuron, channel, layer), by timing (pre-training, during training, post-training), and by target (structural, unstructural). Our pruning strategy focuses on neurons in FFN layers and attention heads in \texttt{QKV} projection layers. Specifically, we train pruning masks for both FFN and \texttt{QKV} projections separately, and finally perform pruning using the masks. Therefore, our approach can be categorized as structural movement pruning, taking neurons and attention heads as the minimum granularity.
+\subsection{Movement Pruning}\label{subsec:mt:movement-pruning}
+Pruning is a model optimization technique aimed at reducing the size and computational complexity of deep learning models by removing less important parameters or structures.
+There are several different classification approaches for pruning, including by granularity (weight, neuron, channel, layer),
+by timing (pre-training, during training, post-training), and by target (structural, unstructural).
+Our pruning strategy focuses on neurons in FFN layers and attention heads in \texttt{QKV} projection layers.
+Specifically, we train pruning masks for both FFN and \texttt{QKV} projections separately, and finally perform pruning using the masks.
+Therefore, our approach can be categorized as structural movement pruning, taking neurons and attention heads as the minimum granularity.
 
-We assign a uniformly drawn score to each neuron in an FFN layer and to each head in an attention layer. Each time during forward passes, we use a threshold \texttt{K} to select the top \texttt{K} smallest scores and drop the corresponding neurons and attention heads by transforming the scores into masks. Regarding neurons and attention heads as pruning granularity, we should notice that once we have determined which attention head is useless, we should remove that same head from all \texttt{QKV} projections and the final output projection in the current attention. Also for FFN layers that contain two linear layers \texttt{fc1} and \texttt{fc2}, once we have decided which neuron can be pruned in \texttt{fc1}, we must remove the corresponding neuron defined in \texttt{fc2}.  Therefore, we call our trained scores ``shared score'' or ``shared mask'', since they are shared among \texttt{QKV} attention projections, and among FFN layers.
+We assign a uniformly drawn score to each neuron in an FFN layer and to each head in an attention layer.
+Each time during forward passes, we use a threshold \texttt{K} to select the top \texttt{K}
+smallest scores and drop the corresponding neurons and attention heads by transforming the scores into masks.
+Regarding neurons and attention heads as pruning granularity,
+we should notice that once we have determined which attention head is useless,
+we should remove that same head from all \texttt{QKV} projections and the final output projection in the current attention.
+Also for FFN layers that contain two linear layers \texttt{fc1} and \texttt{fc2},
+once we have decided which neuron can be pruned in \texttt{fc1},
+we must remove the corresponding neuron defined in \texttt{fc2}.
+Therefore, we call our trained scores ``shared score'' or ``shared mask'',
+since they are shared among \texttt{QKV} attention projections, and among FFN layers.
 
 During the training process in order to find the best shared masks in the Transformer,
 we will apply the current shared masks in forward and backward passes to train learnable shared masks.
@@ -119,7 +153,12 @@ while in Figure~\ref{fig:attention_head_pruning}, darker colors highlight pruned
 
 
 \subsection{Quantization}
-Quantization can reduce the precision of numbers used to present parameters or activations. By converting high-precision floating-point numbers (FP32, FP64) to lower precision (INT8, FP16), quantization reduces the memory footprint and computational requirements of a model, making it more efficient for deployment on resource-constrained devices like edge or mobile devices. Types of quantization include PTQ, standing for post-training quantization, and QAT, short for quantization-aware training. To map FP32, for instance, to INT8, we can convert floating point values into quantized space using linear mapping strategy, as expressed below:
+Quantization can reduce the precision of numbers used to present parameters or activations.
+By converting high-precision floating-point numbers (FP32, FP64) to lower precision (INT8, FP16),
+quantization reduces the memory footprint and computational requirements of a model,
+making it more efficient for deployment on resource-constrained devices like edge or mobile devices.
+Types of quantization include post-training quantization (PTQ), and quantization-aware training (QAT).
+To map FP32, for instance, to INT8, we can convert floating point values into quantized space using linear mapping strategy, as expressed below:
 
 
 \begin{gather}
@@ -131,7 +170,8 @@ Quantization can reduce the precision of numbers used to present parameters or a
 
 where $r$ and $q$ are the number before and after quantization; $S$ and $Z$ are scale and zero-point.
 The linear mapping is referred to as symmetric or asymmetric mapping, depending on whether $Z$ is zero,
-as shown in Figure~\ref{fig:sub4}, where a symmetric range is converted to a symmetric INT8 range on the left and an asymmetric range is mapped to an asymmetric INT8 range.
+as shown in Figure~\ref{fig:sub4}, where a symmetric range is converted to
+a symmetric INT8 range on the left and an asymmetric range is mapped to an asymmetric INT8 range.
 
 \begin{figure}[hbpt]
     \centering
@@ -140,8 +180,28 @@ as shown in Figure~\ref{fig:sub4}, where a symmetric range is converted to a sym
     \label{fig:sub4}
 \end{figure}
 
-After mapping FP32 to INT8, which is PTQ, the memory footprint is significantly reduced; however, this comes at the cost of precision and performance degradation. To compensate for the degradation, calibration can be performed by feeding real data into the quantized model to estimate and adjust weight ranges.
+After mapping FP32 to INT8, which is PTQ, the memory footprint is significantly reduced;
+however, this comes at the cost of precision and performance degradation.
+To compensate for the degradation, calibration can be performed by feeding real data
+into the quantized model to estimate and adjust weight ranges.
 
-Another approach for the model to adjust for quantization errors is to use online quantization techniques, for instance, QAT, instead of the offline PTQ method. QAT involves training the model with quantization simulated during the process to improve performance after quantization. Despite weights being quantized to INT8, during the forward process weights are still represented as FP32 to adjust for quantization errors. After quantization-aware training, the model learns to compensate for quantization errors, ensuring minimal performance degradation, followed by PTQ after training to convert the model to an INT8 format, and inference is performed using INT8 precision.
+Another approach for the model to adjust for quantization errors is to use online quantization techniques,
+for instance, QAT, instead of the offline PTQ method.
+QAT involves training the model with quantization simulated during the process to improve performance after quantization.
+Despite weights being quantized to INT8, during the forward process weights are still represented as FP32 to adjust for quantization errors.
+After QAT, the model learns to compensate for quantization errors, ensuring minimal performance degradation,
+followed by PTQ after training to convert the model to an INT8 format, and inference is performed using INT8 precision.
 
-Our approach follows the above description, performing QAT first, followed by PTQ. To implement QAT, We designed a \texttt{QLinear} layer to substitute the original \texttt{torch.nn.Linear} layers to perform quantization-aware training. There was a similar problem as described in the pruning section: the linear mapping process, as we call it \texttt{affine}, leveraging \texttt{round} and \texttt{clamp} operations, is non-differentiable. We applied the same approach described above: STE to estimate the backward gradient for our \texttt{QLinear} layers to learn and gradually adjust for quantization errors. We rewrote the backward function for the $XW + b$ linear operation, plugging in \texttt{affine} and \texttt{deaffine} logic for $W$ parameters during forward and backward passes. Another operation worth mentioning is that we did not assign zero-points in \texttt{affine} and \texttt{deaffine} since during experiments we found the performance of the models was better using symmetric quantization perhaps due to weight distribution in the pre-trained models.
+Our approach follows the above description, performing QAT first, followed by PTQ.
+To implement QAT, We designed a \texttt{QLinear} layer to substitute the original \texttt{torch.nn.Linear} layers
+to perform quantization-aware training.
+There was a similar problem as described in Subsection~\ref{subsec:mt:movement-pruning}:
+the linear mapping process, as we call it \texttt{affine}, leveraging \texttt{round} and \texttt{clamp} operations,
+is non-differentiable.
+We applied the same approach described above: STE to estimate the backward gradient for our \texttt{QLinear} layers
+to learn and gradually adjust for quantization errors.
+We rewrote the backward function for the $XW + b$ linear operation, plugging in \texttt{affine} and \texttt{deaffine} logic
+for $W$ parameters during forward and backward passes.
+Another operation worth mentioning is that we did not assign zero-points in \texttt{affine} and \texttt{deaffine}
+since during experiments we found the performance of the models was better using symmetric quantization,
+possibly due to weight distribution in the pre-trained models.

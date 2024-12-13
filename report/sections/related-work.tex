@@ -1,9 +1,9 @@
 \subsection{Knowledge Distillation}\label{subsec:rw:knowledge-distillation}
-Hinton et al. proposed the concept of knowledge distillation~\cite{hinton2015distilling},
+Hinton et al.~\cite{hinton2015distilling} introduced the concept of knowledge distillation,
 providing the basis for model compression and optimization.
 Knowledge distillation uses soft targets of the teacher model as the learning target for the smaller student model
 by minimizing the KL divergence between the output probability distributions of the teacher and the student.
-After that, FitNets~\cite{romero2014fitnets} proposed using intermediate representations,
+Building on this, FitNets~\cite{romero2014fitnets} proposed using intermediate representations,
 such as feature maps and hidden states, of the teacher model as a guidance for students to learn internal representations.
 Students not only imitate the final outputs of the teachers, but also replicate their details.
 Then, DistilBERT~\cite{sanh2019distilbert} applied this technique to BERT, a Transformer model,
