@@ -16,4 +16,4 @@ conda activate tmp
 [GPT-2 notebook and results](https://github.com/Phoslight/Bart-opt/blob/main/prediction/pipeline_prediction.ipynb)
 
 ## Report
-[Project report](https://github.com/Phoslight/Bart-opt/blob/main/docs/cap6617fa24_project_Six%20Degrees%20of%20Inner%20Turbulence.pdf)
+[Project report](https://github.com/Phoslight/CAP6617-Project/blob/main/report/target.pdf)
