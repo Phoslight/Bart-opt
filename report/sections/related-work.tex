@@ -1,0 +1,48 @@
+\subsection{Knowledge Distillation}\label{subsec:rw:knowledge-distillation}
+Hinton et al. proposed the concept of knowledge distillation~\cite{hinton2015distilling},
+providing the basis for model compression and optimization.
+Knowledge distillation uses soft targets of the teacher model as the learning target for the smaller student model
+by minimizing the KL divergence between the output probability distributions of the teacher and the student.
+After that, FitNets~\cite{romero2014fitnets} proposed using intermediate representations,
+such as feature maps and hidden states, of the teacher model as a guidance for students to learn internal representations.
+Students not only imitate the final outputs of the teachers, but also replicate their details.
+Then, DistilBERT~\cite{sanh2019distilbert} applied this technique to BERT, a Transformer model,
+reducing its parameters by 40\% percent while retaining more than 97\% of the performance on various workloads.
+Subsequently, Shleifer and Rush~\cite{shleifer2020pre} extended knowledge distillation techniques to the field of text summarizations.
+Their approach introduced task-related techniques to distill large summarization models,
+such as T5 and BART, into smaller models, with a smaller model inference time.
+These researches demonstrate that by effectively extracting and transferring knowledge from different layers of the teacher model,
+knowledge distillation can significantly reduce model footprint and inference time,
+making models adaptable to various application scenarios.
+
+\subsection{Pruning}\label{subsec:rw:pruning}
+Early pruning strategy focused on sparsifying weight matrices by removing weights with small values,
+which is unstructured pruning~\cite{han2015learning}.
+For Transformers, structured pruning is applied to optimize the self-attention and feed-forward neural network components.
+This approach calculates importance scores to select necessary attention heads and drop the others~\cite{michel2019sixteen}
+without significantly degrading the model performance.
+After that, movement pruning~\cite{sanh2020movement} was proposed to dynamically adjust the pruning strategy during training
+or fine-tuning process according to gradient information, improving the overall model precision and robustness after pruning.
+This strategy can be applied to both unstructured and structured pruning, which is flexible.
+Famous real-world model pruning implementations include~\texttt{torch.nn.utils.prune},
+which contains both unstructured and structured pruning.
+For unstructured pruning, the implementation leverages random masks or weight thresholds to drop weights in a parameter-by-parameter manner.
+Structured pruning is a larger-granularity pruning that removes neurons, convolution kernels, or attention heads.
+
+\subsection{Quantization}\label{subsec:rw:quantization}
+Quantization includes weight quantization and activation quantization.
+In recent years, 8-bit weight and activation quantization has become mainstream in Transformer models,
+since quantizing a 32-bit float point Transformer to an 8-bit model can largely reduce the model footprint
+and inference cost while retaining high precision.
+For instance, Q8BERT~\cite{zafrir2019q8bert} introduced a quantized 8-bit BERT model,
+reducing the model size by approximately 4x by applying quantization-aware training.
+Furthermore, TernaryBERT~\cite{zhang2020ternarybert} uses a ternary quantization mechanism,
+and the weights of the model only take values in \texttt{\{-1, 0, 1\}},
+further achieving a higher compression rate while retaining the performance.
+Real-world implementations of quantization include TorchQuantization,
+which provides implementations of post-training quantization and quantization-aware training.
+Post-training quantization requires the offline collection of calibration data to generate precise scale factors
+after converting the model.
+For quantization-aware training, TorchQuantization supports inserting fake quantization modules
+in the model and significantly improves the performance of low-precision models by simulating
+and propagating quantized model loss to optimize the weights of the quantized model.

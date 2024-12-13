@@ -1,0 +1,90 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{hinton2015distilling}
+\citation{romero2014fitnets}
+\citation{sanh2019distilbert}
+\citation{shleifer2020pre}
+\citation{han2015learning}
+\citation{michel2019sixteen}
+\citation{sanh2020movement}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}{section.1}\protected@file@percent }
+\newlabel{sec:introduction}{{I}{1}{Introduction}{section.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {II}Related Work}{1}{section.2}\protected@file@percent }
+\newlabel{sec:related-work}{{II}{1}{Related Work}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-A}}Knowledge Distillation}{1}{subsection.2.1}\protected@file@percent }
+\newlabel{subsec:rw:knowledge-distillation}{{\mbox  {II-A}}{1}{Knowledge Distillation}{subsection.2.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-B}}Pruning}{1}{subsection.2.2}\protected@file@percent }
+\newlabel{subsec:rw:pruning}{{\mbox  {II-B}}{1}{Pruning}{subsection.2.2}{}}
+\citation{zafrir2019q8bert}
+\citation{zhang2020ternarybert}
+\citation{gokaslan2019openwebtext}
+\citation{wolf2020transformers}
+\citation{lewis2019bart}
+\citation{radford2019language}
+\citation{shleifer2020pre}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-C}}Quantization}{2}{subsection.2.3}\protected@file@percent }
+\newlabel{subsec:rw:quantization}{{\mbox  {II-C}}{2}{Quantization}{subsection.2.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {III}Method}{2}{section.3}\protected@file@percent }
+\newlabel{sec:method}{{III}{2}{Method}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}Experiment Setup}{2}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Knowledge Distillation}{2}{subsection.3.2}\protected@file@percent }
+\newlabel{eq:kd-loss}{{1}{2}{Knowledge Distillation}{equation.3.1}{}}
+\newlabel{eq:kdmse-loss}{{2}{2}{Knowledge Distillation}{equation.3.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Example of distillation of Encoder-Decoder model, e.g. BART-large}}{3}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:sub1}{{1}{3}{Example of distillation of Encoder-Decoder model, e.g. BART-large}{figure.caption.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Example of distillation of Decoder-Only model, e.g. GPT-2}}{3}{figure.caption.2}\protected@file@percent }
+\newlabel{fig:sub2}{{2}{3}{Example of distillation of Decoder-Only model, e.g. GPT-2}{figure.caption.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-C}}Movement Pruning}{3}{subsection.3.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Movement Threshold Scheduler for Attention Layers}}{4}{figure.caption.3}\protected@file@percent }
+\newlabel{fig:sub3}{{3}{4}{Movement Threshold Scheduler for Attention Layers}{figure.caption.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-D}}Quantization}{4}{subsection.3.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Sample Neuron Pruning for FFN}}{4}{figure.caption.4}\protected@file@percent }
+\newlabel{fig:neuron_pruning}{{4}{4}{Sample Neuron Pruning for FFN}{figure.caption.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Sample Attention Head Pruning for Self-Attention and Cross-Attention in Decoder.}}{4}{figure.caption.5}\protected@file@percent }
+\newlabel{fig:attention_head_pruning}{{5}{4}{Sample Attention Head Pruning for Self-Attention and Cross-Attention in Decoder}{figure.caption.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Linear Mapping with or without Zero-point}}{4}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:sub4}{{6}{4}{Linear Mapping with or without Zero-point}{figure.caption.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Experiment Results}{5}{section.4}\protected@file@percent }
+\newlabel{sec:experiment-results}{{IV}{5}{Experiment Results}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Knowledge Distillation}{5}{subsection.4.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Comparison of Teacher and Student Models for BART-large-CNN}}{5}{table.caption.7}\protected@file@percent }
+\newlabel{tab:BART_comparison}{{I}{5}{Comparison of Teacher and Student Models for BART-large-CNN}{table.caption.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Comparison of Teacher and Student Models for GPT-2}}{5}{table.caption.8}\protected@file@percent }
+\newlabel{tab:gpt2_comparison}{{II}{5}{Comparison of Teacher and Student Models for GPT-2}{table.caption.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Movement Pruning}{5}{subsection.4.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Comparison of Original and Pruned Models for BART-large-CNN}}{5}{table.caption.9}\protected@file@percent }
+\newlabel{tab:BART_comparison_pruning}{{III}{5}{Comparison of Original and Pruned Models for BART-large-CNN}{table.caption.9}{}}
+\bibstyle{unsrt}
+\bibdata{ref}
+\bibcite{hinton2015distilling}{1}
+\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces Comparison of Original and Pruned Models for GPT-2}}{6}{table.caption.10}\protected@file@percent }
+\newlabel{tab:gpt2_comparison_pruning}{{IV}{6}{Comparison of Original and Pruned Models for GPT-2}{table.caption.10}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-C}}Quantization}{6}{subsection.4.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces Comparison of Original and Quantized Models for BART-large-CNN}}{6}{table.caption.11}\protected@file@percent }
+\newlabel{tab:BART_comparison_q}{{V}{6}{Comparison of Original and Quantized Models for BART-large-CNN}{table.caption.11}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-D}}Pipelines}{6}{subsection.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {V}Conclusions and Future Work}{6}{section.5}\protected@file@percent }
+\newlabel{sec:conclusions-and-future-work}{{V}{6}{Conclusions and Future Work}{section.5}{}}
+\bibcite{romero2014fitnets}{2}
+\bibcite{sanh2019distilbert}{3}
+\bibcite{shleifer2020pre}{4}
+\bibcite{han2015learning}{5}
+\bibcite{michel2019sixteen}{6}
+\bibcite{sanh2020movement}{7}
+\bibcite{zafrir2019q8bert}{8}
+\bibcite{zhang2020ternarybert}{9}
+\bibcite{gokaslan2019openwebtext}{10}
+\bibcite{wolf2020transformers}{11}
+\bibcite{lewis2019bart}{12}
+\bibcite{radford2019language}{13}
+\@writefile{lot}{\contentsline {table}{\numberline {VI}{\ignorespaces Pipeline of BART-large-CNN}}{7}{table.caption.12}\protected@file@percent }
+\newlabel{tab:BART_pipeline}{{VI}{7}{Pipeline of BART-large-CNN}{table.caption.12}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {VII}{\ignorespaces Pipeline of GPT-2}}{7}{table.caption.13}\protected@file@percent }
+\newlabel{tab:GPT2_pipeline}{{VII}{7}{Pipeline of GPT-2}{table.caption.13}{}}
+\@writefile{toc}{\contentsline {section}{References}{7}{section*.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  A: Link to Code Repository}{7}{section*.15}\protected@file@percent }
+\newlabel{sec:appendix-code}{{A}{7}{\appendixname \nobreakspace \thesectiondis \\* Link to Code Repository}{section*.15}{}}
+\gdef \@abspage@last{7}

@@ -1,0 +1,77 @@
+\begin{thebibliography}{10}
+
+\bibitem{hinton2015distilling}
+Geoffrey Hinton.
+\newblock Distilling the knowledge in a neural network.
+\newblock {\em arXiv preprint arXiv:1503.02531}, 2015.
+
+\bibitem{romero2014fitnets}
+Adriana Romero, Nicolas Ballas, Samira~Ebrahimi Kahou, Antoine Chassang, Carlo
+  Gatta, and Yoshua Bengio.
+\newblock Fitnets: Hints for thin deep nets.
+\newblock {\em arXiv preprint arXiv:1412.6550}, 2014.
+
+\bibitem{sanh2019distilbert}
+V~Sanh.
+\newblock Distilbert, a distilled version of bert: smaller, faster, cheaper and
+  lighter.
+\newblock {\em arXiv preprint arXiv:1910.01108}, 2019.
+
+\bibitem{shleifer2020pre}
+Sam Shleifer and Alexander~M Rush.
+\newblock Pre-trained summarization distillation.
+\newblock {\em arXiv preprint arXiv:2010.13002}, 2020.
+
+\bibitem{han2015learning}
+Song Han, Jeff Pool, John Tran, and William Dally.
+\newblock Learning both weights and connections for efficient neural network.
+\newblock {\em Advances in neural information processing systems}, 28, 2015.
+
+\bibitem{michel2019sixteen}
+Paul Michel, Omer Levy, and Graham Neubig.
+\newblock Are sixteen heads really better than one?
+\newblock {\em Advances in neural information processing systems}, 32, 2019.
+
+\bibitem{sanh2020movement}
+Victor Sanh, Thomas Wolf, and Alexander Rush.
+\newblock Movement pruning: Adaptive sparsity by fine-tuning.
+\newblock {\em Advances in neural information processing systems},
+  33:20378--20389, 2020.
+
+\bibitem{zafrir2019q8bert}
+Ofir Zafrir, Guy Boudoukh, Peter Izsak, and Moshe Wasserblat.
+\newblock Q8bert: Quantized 8bit bert.
+\newblock In {\em 2019 Fifth Workshop on Energy Efficient Machine Learning and
+  Cognitive Computing-NeurIPS Edition (EMC2-NIPS)}, pages 36--39. IEEE, 2019.
+
+\bibitem{zhang2020ternarybert}
+Wei Zhang, Lu~Hou, Yichun Yin, Lifeng Shang, Xiao Chen, Xin Jiang, and Qun Liu.
+\newblock Ternarybert: Distillation-aware ultra-low bit bert.
+\newblock {\em arXiv preprint arXiv:2009.12812}, 2020.
+
+\bibitem{gokaslan2019openwebtext}
+Aaron Gokaslan and Vanya Cohen.
+\newblock Openwebtext corpus, 2019.
+
+\bibitem{wolf2020transformers}
+Thomas Wolf, Lysandre Debut, Victor Sanh, Julien Chaumond, Clement Delangue,
+  Anthony Moi, Pierric Cistac, Tim Rault, R{\'e}mi Louf, Morgan Funtowicz,
+  et~al.
+\newblock Transformers: State-of-the-art natural language processing.
+\newblock In {\em Proceedings of the 2020 conference on empirical methods in
+  natural language processing: system demonstrations}, pages 38--45, 2020.
+
+\bibitem{lewis2019bart}
+Mike Lewis, Yinhan Liu, Naman Goyal, Marjan Ghazvininejad, Abdelrahman Mohamed,
+  Omer Levy, Veselin Stoyanov, and Luke Zettlemoyer.
+\newblock Bart: Denoising sequence-to-sequence pre-training for natural
+  language generation, translation, and comprehension.
+\newblock {\em arXiv preprint arXiv:1910.13461}, 2019.
+
+\bibitem{radford2019language}
+Alec Radford, Jeffrey Wu, Rewon Child, David Luan, Dario Amodei, Ilya
+  Sutskever, et~al.
+\newblock Language models are unsupervised multitask learners.
+\newblock {\em OpenAI blog}, 1(8):9, 2019.
+
+\end{thebibliography}
