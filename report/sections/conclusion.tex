@@ -1,0 +1,25 @@
+The experiments and evaluations conducted in this study demonstrate the trade-offs inherent in optimizing
+lightweight models for practical tasks like typing assistance and summarization.
+While our current optimizations and pipelines have shown measurable improvements in model size and inference time,
+several avenues remain to enhance performance and usability further.
+
+One promising direction is exploring frameworks such as ONNX, which can streamline operations like INT8 matrix multiplication
+and improve runtime compatibility across diverse hardware.
+Integrating ONNX into our workflow could significantly reduce inference latency for quantized models.
+Another area of improvement lies in better utilization of PyTorch's capabilities.
+While Python's inherent performance overhead has been mitigated to some extent by PyTorch's C++ backend,
+leveraging Just-In-Time (JIT) compilation and converting models to TorchScript can further eliminate Python-specific bottlenecks.
+This approach would ensure faster execution during inference without requiring extensive changes to existing training workflows.
+For fine-tuning, emerging techniques like Low-Rank Adaptation (LoRA) offer a potential path forward.
+By splitting weight matrices into low-rank components,
+LoRA reduces the computational cost of gradient updates during fine-tuning while maintaining high precision.
+Applying such methods to the LSTM and GPT-2 models may lead to faster convergence and better resource utilization.
+Finally, future efforts should investigate optimizing the hybrid system itself.
+For example, dynamic task allocation mechanisms could be developed to improve the decision-making process between LSTM and GPT-2,
+ensuring optimal resource use based on input complexity.
+Additionally, refining the LSTM to handle broader contexts or partially fine-tuning GPT-2 on character-level tasks
+might further enhance the system's adaptability.
+
+In conclusion, advancing lightweight Transformer models requires a balanced approach,
+combining innovative algorithmic strategies with practical implementation refinements.
+By leveraging emerging technologies and techniques, the potential for creating even more efficient and capable systems is substantial.

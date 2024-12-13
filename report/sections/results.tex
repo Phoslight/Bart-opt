@@ -1,0 +1,200 @@
+\subsection{Experiment Setup}
+We conducted experiments using the OpenWebText dataset~\cite{gokaslan2019openwebtext}, an open-source replication of OpenAI's WebText,
+for autoregressive text prediction tasks and training the LSTM model for character-level text completion.
+The BBC news dataset, containing original posts and their corresponding summaries,
+was used for text summarization tasks with Transformer-based models.
+
+For the Transformer-based models, we utilized HuggingFace's \textit{transformers}~\cite{wolf2020transformers} library,
+which provided pre-trained definitions for BART and GPT-2.
+The library's \texttt{Trainer} and \texttt{Seq2SeqTrainer} APIs were used for fine-tuning, streamlining the training process.
+Experiments were run on an A100 GPU with 40GB of memory using Google Colab.
+Due to computational constraints, only a small subset of the original datasets was used,
+requiring approximately 5 hours of runtime.
+The pre-trained models were fine-tuned on task-specific data to facilitate performance comparisons post-optimization.
+
+For the LSTM model, a subset of OpenWebText dataset (10K samples) was preprocessed into overlapping character-level sequences.
+Texts were split into chunks of up to 100 characters, with a one-third overlap between consecutive chunks to preserve context.
+The vocabulary included lowercase and uppercase English letters, punctuation symbols (e.g., \texttt{.}, \texttt{,}, \texttt{!}, \texttt{?}),
+and spaces, with unknown or non-standard characters handled as special tokens.
+
+We trained the LSTM model with a batch size of 1024.
+Each sequence was split into inputs (characters up to the second-last in the chunk) and targets (characters from the second character onward).
+This setup allowed the LSTM to learn character-level dependencies effectively and generate predictions for incomplete text inputs.
+On an Nvidia 4090 GPU, it took about 2.5 hours to train the model.
+
+\subsection{Knowledge Distillation}
+We have evaluated the performance, inference time, and the reduction of storage for our distiller with the settings discussed above. As the table~\ref{tab:BART_comparison} shows below, the distiller for BART-large-CNN on text summarization had a good result: not only did our student have nearly the same rouge scores as the teachers', but it also had 26.7\% inference time reduction and 43\% model size reduction. The rouge scores range from 0 to 1, with higher values indicating better quality. Please note that the model size reduction is less than 50\% but that is normal since Transformer models have a shared embedding layer above the encoder to transform text ids to text embeddings,  % (bs, seq_len) -> (bs, seq_len, n_dim)
+and another linear language modeling head layer below the decoder to map hidden states to vocabulary logits. % (bs, seq_len, n_dim) -> (bs, seq_len, vocab_sz)
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Name}         & \multicolumn{2}{c}{\textbf{BART-large-CNN}} \\ \midrule
+        \textbf{Metric}       & \textbf{Teacher Model} & \textbf{Student Model} \\ \midrule
+        Encoder Layers        & 12                     & 6                     \\
+        Decoder Layers        & 12                     & 6                     \\
+        ROUGE-1 Score         & 0.717                  & 0.716                  \\
+        ROUGE-2 Score         & 0.617                  & 0.617                  \\
+        ROUGE-L Score         & 0.541                  & 0.551                  \\
+        ROUGE-Lsum Score      & 0.559                  & 0.604                  \\
+        Inference Time        & 59.25s                 & 43.43s                 \\
+        Model Size            & 1.51GB                 & 0.86GB                 \\ \bottomrule
+    \end{tabular}
+    \caption{Comparison of Teacher and Student Models for BART-large-CNN}
+    \label{tab:BART_comparison}
+\end{table}
+
+The result of distiller for GPT-2 are shown below in the table~\ref{tab:gpt2_comparison}. Since we use GPT-2 for text prediction and it is an autoregressive decoder-only model, perplexity was used to evaluate model performance. The lower the perplexity score, the better the model's predicted probability distribution matches the true data distribution, indicating higher quality in generated text under certain conditions. The table suggests that the perplexity score downgraded from 18.25 to a ``more perplexing'' 31.98, which we believe it is due to the small size of the dataset, and because on text generation we did not train it to full convergence due to a lack of resources. However, the inference time shows 19\% reduction, with the model reduced by 43\% (the latter one is same as the result from BART-large-CNN).
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Name}         & \multicolumn{2}{c}{\textbf{GPT-2}} \\ \midrule
+        \textbf{Metric}       & \textbf{Teacher Model} & \textbf{Student Model} \\ \midrule
+        Decoder Layers        & 12                     & 6                     \\
+        Perplexity            & 18.25                  & 31.98                  \\
+        Inference Time        & 43.18s                 & 34.95s                 \\
+        Model Size            & 0.548GB                & 0.31GB                 \\ \bottomrule
+    \end{tabular}
+    \caption{Comparison of Teacher and Student Models for GPT-2}
+    \label{tab:gpt2_comparison}
+\end{table}
+
+\subsection{Movement Pruning}
+We applied only our pruner on the fine-tuned BART-large-CNN model without applying distillation to show pruning results. The table~\ref{tab:BART_comparison_pruning} below shows 35\% of storage reduction and about 4\% of rouge score loss, which means our pruning strategy works. A reflection on the pruning strategy is that, we use learnable scores (masks), train those masks, and apply those masks during training to get the most valuable neurons / attention headers, which has similar semantics as QAT using quantization-aware weights during training. Besides, the STE strategy is applied as well both in pruning and in QAT.
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Name}         & \multicolumn{2}{c}{\textbf{BART-large-CNN}} \\ \midrule
+        \textbf{Metric}       & \textbf{Original} & \textbf{Pruned} \\ \midrule
+        Encoder Layers        & 12                     & 12                     \\
+        Decoder Layers        & 12                     & 12                     \\
+        ROUGE-1 Score         & 0.717                  & 0.713                  \\
+        ROUGE-2 Score         & 0.617                  & 0.612                  \\
+        ROUGE-L Score         & 0.541                  & 0.530                  \\
+        ROUGE-Lsum Score      & 0.559                  & 0.535                  \\
+        Inference Time        & 59.25s                 & 59.2s                  \\
+        Model Size            & 1.51GB                 & 0.98GB                 \\ \bottomrule
+    \end{tabular}
+    \caption{Comparison of Original and Pruned Models for BART-large-CNN}
+    \label{tab:BART_comparison_pruning}
+\end{table}
+
+The next table~\ref{tab:gpt2_comparison_pruning} shows the pruning result of the GPT-2 model, with a 25\% reduction in storage and an increase in perplexity from 18.25 to 39.84. The reduction of model size reduction is smaller for GPT-2 compared to BART-large-CNN, as decoder layers in BART-large-CNN include both self-attention and cross-attention, which can be pruned, whereas only self-attention is prunable in GPT-2's decoder layers. Hence the storage reduction on BART-large-CNN is greater.
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Name}         & \multicolumn{2}{c}{\textbf{GPT-2}} \\ \midrule
+        \textbf{Metric}       & \textbf{Original} & \textbf{Pruned} \\ \midrule
+        Decoder Layers        & 12                     & 12                     \\
+        Perplexity            & 18.25                  & 39.84                  \\
+        Inference Time        & 43.18s                 & 42.1s                  \\
+        Model Size            & 0.548GB                & 0.406GB                \\ \bottomrule
+    \end{tabular}
+    \caption{Comparison of Original and Pruned Models for GPT-2}
+    \label{tab:gpt2_comparison_pruning}
+\end{table}
+
+\subsection{Quantization}
+
+We applied only our quantizer on models, and the table~\ref{tab:BART_comparison_pruning} below shows 62\% of storage reduction with a loss of less than 2\% on the BART-large-CNN model. However, the inference time remains the same: after PTQ weights are transformed into quantized INT8 formats, and the model should have applied INT8 by INT8 matrix multiplication when doing linear calculation; however, it is challenging to find highly optimized INT8 by INT8 matrix third-party APIs both working on CUDA chips and MPS devices (Macbook M2). To keep the performance data consistent on both platforms, we employed a straightforward approach by converting INT8 to FP32 during inference. While the results remain consistent, this approach is slower. The results of GPT-2 are comparable to those of BART-large-CNN; therefore, they are not presented here for brevity.
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Name}         & \multicolumn{2}{c}{\textbf{BART-large-CNN}} \\ \midrule
+        \textbf{Metric}       & \textbf{Original} & \textbf{Quantized} \\ \midrule
+        Encoder Layers        & 12                     & 12                     \\
+        Decoder Layers        & 12                     & 12                     \\
+        ROUGE-1 Score         & 0.717                  & 0.717                  \\
+        ROUGE-2 Score         & 0.617                  & 0.616                  \\
+        ROUGE-L Score         & 0.541                  & 0.536                  \\
+        ROUGE-Lsum Score      & 0.559                  & 0.552                  \\
+        Inference Time        & 59.25s                 & 59.3s                  \\
+        Model Size            & 1.51GB                 & 0.58GB                 \\ \bottomrule
+    \end{tabular}
+    \caption{Comparison of Original and Quantized Models for BART-large-CNN}
+    \label{tab:BART_comparison_q}
+\end{table}
+
+\subsection{Pipelines}
+We combined these optimizations in a distillation-pruning-quantization order as a pipeline and performed the final optimized models on text summarization and text prediction. After each optimization was done, we performed model size calculation and performance measurement for that optimization to observe the effect.
+
+The table~\ref{tab:BART_pipeline} presents the results of the BART-large-CNN pipeline, which reduces the memory footprint by 77.5\% and inference time by 26.2\%, with a performance loss of less than 3.5\%. However, there is still more space to optimize storage and inference time. For example, we can extract 3 or 4 layers from the teacher during distillation instead of 6, drop attention heads by more than 30\% as we set, or implement INT8 by INT8 matrix multiplication logic for quantized model inference, but we would also like to balance the loss to get a good performance figure so we made some trade-offs on hyperparameter selections. From the table, we may find that the attention layers and the FFN layers have been sufficiently optimized, and the remaining storage is mainly due to the existence of the shared embedding layer and the language modeling head layers, which are both huge with a size of $(50264 \times 1024)$ in BART-large-CNN, indicating that these two layers, i.e. the vocabulary size is the current bottleneck. In comparison, unoptimized Q projection in BART-large-CNN only has a size of $(1024 \times 1024)$. One way to handle this is to prune the vocabulary table: we can scan all data from datasets and drop never-used words from the vocabulary table. We researched and found using our BBC dataset, we could shrink the size of the vocabulary table to nearly half of the original. However, since this is highly dataset-related, so we finally did not apply it.
+
+\begin{table*}[h!]
+    \centering
+    \begin{tabular}{lccccc}
+        \toprule
+        \textbf{Pipeline}       & \textbf{Fine-Tuned} & \textbf{Distilled} & \textbf{Pruned} & \textbf{Quantized}  & \textbf{Percentage (Q / FT)} \\ \midrule
+        Encoder Layers        & 12                  & 6                     & 6                & 6  &  -                    \\
+        Decoder Layers        & 12                  & 6                     & 6                & 6  &  -                    \\
+        ROUGE-1 Score         & 0.717               & 0.716                 & 0.712            & 0.707  &  98.6\%                 \\
+        ROUGE-2 Score         & 0.617               & 0.617                 & 0.611            & 0.604  &  97.8\%                \\
+        ROUGE-L Score         & 0.541               & 0.551                 & 0.528            & 0.523  &  96.6\%                 \\
+        ROUGE-Lsum Score      & 0.599               & 0.604                 & 0.578            & 0.579  &  96.6\%                 \\
+        Inference Time (s)    & 59.25               & 43.42                 & 43.44             & 43.75  &  73.8\%                  \\
+        Model Size (GB)       & 1.51                & 0.86                  & 0.56             & 0.34   &  22.5\%                  \\ \bottomrule
+    \end{tabular}
+    \caption{Pipeline of BART-large-CNN}
+    \label{tab:BART_pipeline}
+\end{table*}
+
+For the GPT-2 pipeline, the results are as the below table~\ref{tab:GPT2_pipeline}, showing that the pipeline reduces the memory footprint by 69\% and inference time by 21.5\%, with an increase of perplexity of 47.41\%. Therefore, the results in BART-large-CNN and GPT-2 optimizations are consistent and effective.
+
+\begin{table*}[h!]
+    \centering
+    \begin{tabular}{lccccc}
+        \toprule
+        \textbf{Pipeline}       & \textbf{Fine-Tuned} & \textbf{Distilled} & \textbf{Pruned} & \textbf{Quantized}  & \textbf{Percentage (Q / FT)} \\ \midrule
+        Decoder Layers        & 12                  & 6                     & 6                & 6  &  -                    \\
+        Perplexity      & 18.25               & 31.98                 & 68.27            & 65.66  &  +47.41                 \\
+        Inference Time (s)    & 43.18               & 34.95                 & 34.96             & 33.92  &  78.5\%                  \\
+        Model Size (GB)       & 0.548                & 0.31                  & 0.23             & 0.17   &  31.0\%                  \\ \bottomrule
+    \end{tabular}
+    \caption{Pipeline of GPT-2}
+    \label{tab:GPT2_pipeline}
+\end{table*}
+
+\subsection{Task-Specific Evaluation}\label{subsec:task-specific-evaluation}
+\begin{table}[!htbp]
+    \centering
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Test Type}       & \textbf{LSTM Accuracy (\%)} & \textbf{GPT-2 Accuracy (\%)} \\ \midrule
+        Incomplete Word Test     & 62.24                      & 5.51                         \\
+        Complete Word Test       & 8.71                       & 14.87                        \\ \bottomrule
+    \end{tabular}
+    \caption{Accuracy results for task-specific evaluations of LSTM and GPT-2 models.}
+    \label{tab:task_specific_results}
+\end{table}
+
+To provide a practical perspective on model performance, we conducted evaluations specifically designed for real-world tasks
+in a typing assistance context.
+While perplexity is commonly used to measure model quality, it does not directly assess usability, particularly for incomplete inputs.
+To address this, we devised two tests:
+
+The \textbf{Incomplete Word Test} involved truncating the last word of an approximately 60-character sentence to a partially typed state,
+requiring the models to predict the correct completion.
+The \textbf{Complete Word Test} removed the last full word from the same sentence, tasking the models to predict the missing word.
+Each test used 1,000 samples derived from the OpenWebText-100k dataset.
+
+The results, as shown in Table~\ref{tab:task_specific_results}, demonstrate distinct strengths for each model.
+For incomplete word predictions, the LSTM achieved 62.24\% accuracy, far surpassing GPT-2's 5.51\%.
+This aligns with the LSTM's design, which focuses on character-level dependencies and is particularly effective for partially typed inputs.
+GPT-2's poor performance in this test highlights its reliance on token-based predictions, which are less suited for incomplete inputs.
+
+Conversely, in the complete word test, GPT-2 outperformed the LSTM with 14.87\% accuracy compared to 8.71\%.
+This reflects GPT-2's ability to leverage its contextual understanding and token-based architecture for generating complete words in structured inputs.
+However, the relatively low accuracy for both models in this test indicates room for improvement in handling broader word prediction tasks.
+
+These results justify the hybrid design, leveraging the LSTM's strengths for incomplete inputs and GPT-2's contextual capabilities for complete inputs.
+By evaluating models in a task-specific manner, we bridge the gap between standard metrics like perplexity and real-world usability,
+ensuring the system performs effectively in practical scenarios.

@@ -1,0 +1,66 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{textcomp}
+\usepackage{booktabs}
+\usepackage{xcolor}
+%\usepackage{placeins}
+\usepackage{hyperref}
+\usepackage{empheq}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{Lightweight Transformer-Based Context-Aware Text Generation}
+
+
+\author{
+\IEEEauthorblockN{Guangyan An*\thanks{* These authors contributed equally to this research.}}
+\IEEEauthorblockA{
+\textit{Department of CISE} \\
+\textit{University of Florida} \\
+Gainesville, USA \\
+anguangyan@ufl.edu}
+\and
+\IEEEauthorblockN{Xiaolin Zheng*}
+\IEEEauthorblockA{
+\textit{Department of CISE} \\
+\textit{University of Florida} \\
+Gainesville, USA \\
+xiaolinzheng@ufl.edu}
+}
+
+\maketitle
+
+\section{Introduction}\label{sec:introduction}
+\input{sections/intro}
+
+\section{Related Work}\label{sec:related-work}
+\input{sections/related-work}
+
+\section{Method}\label{sec:method}
+\input{sections/method}
+
+\section{Experiment Results}\label{sec:experiment-results}
+\input{sections/results}
+
+
+\section{Conclusions and Future Work}\label{sec:conclusions-and-future-work}
+\input{sections/conclusion}
+
+\bibliographystyle{unsrt}
+%\bibliographystyle{ACM-Reference-Format}
+\bibliography{ref}
+
+\appendices
+\section{Link to Code Repository}\label{sec:appendix-code}
+The GitHub repository containing the code is available at
+\href{https://github.com/Phoslight/CAP6617-Project}{\textcolor{blue}{Phoslight/CAP6617-Project}}.
+
+
+\end{document}

@@ -1,0 +1,28 @@
+Text generation systems play a critical role in improving user efficiency in applications like typing assistants,
+chatbots, and news summarization tools.
+Traditional methods, often based on n-gram or rule-based models, struggle with understanding complex sentences
+and providing accurate suggestions, especially in scenarios requiring nuanced context or real-time performance.
+
+The emergence of transformer-based models has transformed Natural Language Processing (NLP). Models like BERT, BART,
+and GPT-2 leverage bidirectional context, enabling more accurate predictions.
+However, despite their effectiveness, transformers are computationally intensive,
+which can limit their feasibility in real-time applications like typing assistance.
+Additionally, token-based transformer models, such as GPT-2, often struggle with incomplete input (e.g., partial words),
+reducing their utility for text completion tasks.
+
+Our project initially focused on creating a lightweight, context-aware text completion and summarization system
+by leveraging pre-trained transformers optimized through techniques such as knowledge distillation, movement pruning, and quantization.
+While summarization tasks demonstrated promising results, we observed significant limitations
+in using transformer models like GPT-2 for real-time typing assistance, particularly for incomplete word completions.
+These challenges motivated a pivot to a hybrid approach:
+combining a lightweight, character-level LSTM model for word completion with GPT-2 for phrase predictions.
+This hybrid design aims to balance efficiency, accuracy, and real-time performance.
+
+This report outlines the development and outcomes of this dual-focus project.
+Section~\ref{sec:related-work} discusses related work on model optimization techniques, including knowledge distillation, pruning, and quantization.
+Section~\ref{sec:method} describes the methodologies used for optimizing transformers, the LSTM-based character model,
+and the integration of both into a hybrid system.
+Section~\ref{sec:experiment-results} presents the evaluation results for both summarization and typing assistance tasks,
+with a focus on the hybrid system's performance.
+Finally, Section~\ref{sec:conclusions-and-future-work} concludes the project and suggests future improvements
+to enhance both summarization and real-time text completion capabilities.

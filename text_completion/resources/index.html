@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Text Completion</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        #inputContainer {
+            position: relative;
+            width: 100%;
+        }
+        textarea, #inputOverlay {
+            width: 100%;
+            height: 200px;
+            font-size: 16px;
+            line-height: 1.5;
+            padding: 10px;
+            margin-bottom: 10px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        /* The textarea text is invisible, but caret is visible */
+        textarea {
+            position: absolute;
+            z-index: 1;
+            background: transparent;
+            color: transparent;
+            caret-color: black;
+            border: 1px solid #ccc;
+            resize: none;
+            overflow: hidden;
+        }
+        #inputOverlay {
+            position: absolute;
+            z-index: 0;
+            color: black; /* user text color */
+            pointer-events: none;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            margin: 0; /* match exactly the textarea positioning */
+            top: 0;
+            left: 0;
+        }
+        /* Predicted text styling: appended as gray text */
+        .prediction-text {
+            color: gray;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Text Completion</h1>
+    <div id="inputContainer">
+        <textarea id="inputText" placeholder="Type your text here..."
+        autocapitalize="off"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"></textarea>
+        <div id="inputOverlay"></div>
+    </div>
+    <div id="prob_disp">Prob: 0.0</div>
+    <script>
+        const inputText = document.getElementById("inputText");
+        const inputOverlay = document.getElementById("inputOverlay");
+        let prediction = "";
+        let typingTimer;
+
+        inputText.addEventListener("input", () => {
+            clearTimeout(typingTimer);
+            const userText = inputText.value;
+            typingTimer = setTimeout(() => {
+                getPrediction(userText);
+            }, 100);
+            updateOverlay(userText, prediction);
+        });
+
+        inputText.addEventListener("keydown", (event) => {
+            if (event.key === "Tab" && prediction) {
+                event.preventDefault(); // Accept the prediction
+                const userText = inputText.value + prediction;
+                inputText.value = userText;
+                prediction = "";
+                updateOverlay(userText, prediction);
+            }
+        });
+
+        async function getPrediction(text) {
+            if (!text) {
+                prediction = "";
+                updateOverlay(text, prediction);
+                return;
+            }
+
+            const MAX_TEXT_LENGTH = 1000;
+            let truncatedText = text;
+            if (text.length > MAX_TEXT_LENGTH) {
+                truncatedText = text.substring(text.length - MAX_TEXT_LENGTH);
+            }
+
+            try {
+                const response = await fetch("/predict", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ text: truncatedText, top_k: 1, max_new_tokens: 10 }),
+                });
+
+                if (!response.ok) {
+                    throw new Error("Prediction request failed");
+                }
+
+                const data = await response.json();
+                if (data.predictions && data.predictions.length > 0) {
+                    let prob = data.prob[0];
+                    prediction = data.predictions[0];
+                    const threshold = 0.5;
+                    if (prob < threshold) {
+                        prediction = "";
+                        prob = 0.0;
+                    }
+                    document.getElementById("prob_disp").innerHTML = "Prob: " + prob;
+                    updateOverlay(text, prediction);
+                } else {
+                    prediction = "";
+                    updateOverlay(text, prediction);
+                }
+            } catch (error) {
+                console.error(error);
+                prediction = "";
+                updateOverlay(text, prediction);
+            }
+        }
+
+        function updateOverlay(userText, predText) {
+            const safeUserText = userText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const safePredText = predText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            // Show user text as black, predicted text as gray
+            inputOverlay.innerHTML = safeUserText + (safePredText ? `<span class="prediction-text">${safePredText}</span>` : "");
+        }
+    </script>
+</body>
+</html>
